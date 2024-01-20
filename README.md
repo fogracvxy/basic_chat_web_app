@@ -23,7 +23,7 @@ Before you begin, ensure you have met the following requirements:
 To install the Basic Auth/Chat Application, follow these steps:
 
 1. Clone the repository:
-git clone https://github.com/yourusername/your-repo-name.git
+git clone https://github.com/fogracvxy/basic_chat_web_app.git
 2. Navigate to the project directory:
 cd basic_chat_web_app
 ## Configuration

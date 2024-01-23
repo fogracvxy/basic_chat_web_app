@@ -3,22 +3,47 @@ import io from "socket.io-client";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 import { formatDistanceToNow } from "date-fns";
-const socket = io("http://localhost:3001"); // Ensure this points to your server
-
+const socket = io("http://localhost:3001");// Ensure this points to your server
+import DOMPurify from "dompurify"; 
 export const ChatUI = () => {
+  interface Message {
+    id: number;
+    user_id: number;
+    avatar_url: string;
+    username: string;
+    content: string;
+    created_at: Date; 
+  }
+  interface SocketMessage {
+    id: number;
+    user_id: number;
+    content: string;
+    created_at: Date;
+    username: string;
+    avatar_url: string;
+  }
+  interface ApiMessage {
+    id: number;
+    user_id: number;
+    content: string;
+    created_at: Date;
+    username: string;
+    avatar_url: string;
+  }
+
+  const [messages, setMessages] = useState<Message[]>([]);
   const user = useSelector((state: RootState) => state.auth.user);
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
-  const bottomRef = useRef(null);
+
+  const [input, setInput] = useState<string>("");
+  const bottomRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    // Function to load messages from the database
     const loadMessages = async () => {
       try {
         const response = await fetch("http://localhost:3001/chat/messages");
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const loadedMessages = await response.json();
+        const loadedMessages: ApiMessage[] = await response.json();
         setMessages(
           loadedMessages.map((msg) => ({
             ...msg,
@@ -33,47 +58,73 @@ export const ChatUI = () => {
     loadMessages();
   }, []);
   useEffect(() => {
-    socket.on("chatMessage", (msg) => {
+    const handleChatMessage = (msg: SocketMessage) => {
       setMessages((prevMessages) => [
         ...prevMessages,
         { ...msg, createdAt: new Date(msg.created_at) },
       ]);
-    });
+    };
 
-    return () => socket.off("chatMessage");
+    socket.on("chatMessage", handleChatMessage);
+
+    // Updated cleanup function
+    return () => {
+      socket.off("chatMessage", handleChatMessage);
+    };
   }, []);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
   console.log(user);
   const sendMessage = () => {
-    if (input.trim()) {
+    const trimmedInput = input.trim();
+    const uuid = crypto.randomUUID();
+    if (trimmedInput) {
       const message = {
-        id: Date.now(),
+        id: uuid,
         userId: user?.id,
-        text: input,
+        text: trimmedInput,
         username: user?.username,
         avatar_url: user?.avatar_url,
       };
-      socket.emit("chatMessage", message);
+
+      socket.emit("chatMessage", message, (error: Error | null) => {
+        if (error) {
+          console.error("Message sending failed", error);
+        }
+      });
+
       setInput("");
     }
   };
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInput(e.target.value);
   };
 
-  const handleKeyPress = (e) => {
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       sendMessage();
     }
   };
 
-  const renderMessage = (message) => {
+  const renderMessage = (message: Message) => {
     const isSelf = user?.id === message.user_id;
     const userProfilePicture = message.avatar_url;
 
+    const UserProfileImage: React.FC<{ userProfilePicture: string }> = ({
+      userProfilePicture,
+    }) => {
+      const sanitizedUrl = DOMPurify.sanitize(userProfilePicture, {
+        ALLOWED_TAGS: [],
+        ALLOWED_ATTR: ["src"],
+      });
+
+      const safeImageUrl = sanitizedUrl;
+
+      return <img src={safeImageUrl} alt="Avatar" className={avatarClasses} />;
+    };
     const messageBubbleClasses = isSelf
       ? "bg-blue-600 text-white p-3 rounded-l-lg rounded-br-lg"
       : "bg-gray-300 p-3 rounded-r-lg rounded-bl-lg";
@@ -95,7 +146,7 @@ export const ChatUI = () => {
         key={message.id}
         className={`flex w-full mt-4 ${isSelf ? "flex-row-reverse" : ""}`}
       >
-        <img src={userProfilePicture} alt="Avatar" className={avatarClasses} />
+        <UserProfileImage userProfilePicture={userProfilePicture} />
         <div className={textContainerClasses}>
           <span className={usernameClasses}>
             {isSelf ? "You" : message.username}
@@ -134,7 +185,7 @@ export const ChatUI = () => {
             placeholder="Type your message…"
             value={input}
             onChange={handleInputChange}
-            onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyPress}
           />
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r"

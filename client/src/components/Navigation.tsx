@@ -7,11 +7,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 import { logout } from "../redux/authslice";
 export const Navigation: React.FC = () => {
-  const [navbarOpen, setNavbarOpen] = useState(false);
+  const [navbarOpen, setNavbarOpen] = useState<boolean>(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false); // State to control logout modal visibility
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState<boolean>(false); // State to control logout modal visibility
   const user = useSelector((state: RootState) => state.auth.user);
   const openLogoutWarning = () => {
     setIsLogoutModalOpen(true);

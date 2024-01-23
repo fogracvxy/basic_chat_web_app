@@ -1,0 +1,5 @@
+.background-svg {
+  background-image: url("/chatbg.svg");
+  background-size: cover;
+  background-repeat: no-repeat;
+}

@@ -3,8 +3,9 @@ import io from "socket.io-client";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 import { formatDistanceToNow } from "date-fns";
-const socket = io("http://localhost:3001");// Ensure this points to your server
-import DOMPurify from "dompurify"; 
+const socket = io("http://localhost:3001"); // Ensure this points to your server
+import DOMPurify from "dompurify";
+import "../components/ChatUI.css";
 export const ChatUI = () => {
   interface Message {
     id: number;
@@ -12,7 +13,7 @@ export const ChatUI = () => {
     avatar_url: string;
     username: string;
     content: string;
-    created_at: Date; 
+    created_at: Date;
   }
   interface SocketMessage {
     id: number;
@@ -166,7 +167,7 @@ export const ChatUI = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center w-screen min-h-screen bg-gray-100 text-gray-800 p-10">
+    <div className="flex flex-col items-center justify-center min-h-screen background-svg text-gray-800 p-10">
       <div className="flex flex-col flex-grow w-full max-w-xl bg-white shadow-xl rounded-lg overflow-hidden">
         <div className="flex flex-col flex-grow h-0 p-4 overflow-auto">
           {messages.length === 0 && (

@@ -1,38 +1,28 @@
 import React from "react";
-// import { useDispatch, useSelector } from "react-redux";
-// import { logout } from "../redux/authslice";
-// import { RootState } from "../redux/store";
-// import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom"; // Import Link from react-router-dom for navigation
 import { Navigation } from "../components/Navigation";
+import { useSelector } from "react-redux";
+import { RootState } from "../redux/store";
 const Home: React.FC = () => {
-  // const dispatch = useDispatch();
-  // const navigate = useNavigate();
-
-  // const user = useSelector((state: RootState) => state.auth.user);
+  const user = useSelector((state: RootState) => state.auth.user);
   return (
     <>
-      {" "}
       <Navigation />
-      <div className="w-full h-screen bg-gray-900 flex items-center justify-center">
-        {/* <div>
-          {" "}
-          <div className="text-blue-200 text-center">
-            Hello, {user?.username}
-          </div>
-          <div>
+      <div className="w-full h-screen bg-gray-900 flex flex-col items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-4xl text-sky-600 mb-6">{user?.username}</h1>
+          <h1 className="text-4xl text-white mb-6">Welcome to Chat App</h1>
+          <p className="text-xl text-gray-300 mb-10">
+            Click the button below to start chatting.
+          </p>
+          <Link to="/globalchat">
             {" "}
-            <p className="text-center text-green-800">You are logged in!!!</p>
-          </div>
-          <div className="text-center">
-            {" "}
-            <button
-              className="bg-slate-500 text-center m-5 p-10 border-red-900 border-4"
-              onClick={() => handleLogout()}
-            >
-              Logout
+            {/* Add the path you want to navigate to on button click */}
+            <button className="bg-blue-500 hover:bg-blue-600 text-white text-lg py-2 px-4 rounded-full transition duration-300 ease-in-out transform hover:scale-105">
+              Click Here to Chat
             </button>
-          </div>
-        </div> */}
+          </Link>
+        </div>
       </div>
     </>
   );

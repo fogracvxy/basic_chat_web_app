@@ -6,6 +6,7 @@ import { ImMenu, ImMenu4 } from "react-icons/im";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 import { logout } from "../redux/authslice";
+import UserSearch from "./userSearch";
 export const Navigation: React.FC = () => {
   const [navbarOpen, setNavbarOpen] = useState<boolean>(false);
   const navigate = useNavigate();
@@ -37,10 +38,13 @@ export const Navigation: React.FC = () => {
       <nav className="relative flex flex-wrap items-center justify-between px-2 py-3 bg-sky-400">
         <div className="container px-4 mx-auto flex flex-wrap items-center justify-between">
           <div className="w-full relative flex justify-between lg:w-auto lg:static lg:block lg:justify-start">
-            <p className="text-sm font-bold leading-relaxed inline-block mr-4 py-2 whitespace-nowrap uppercase text-white">
+            {/* <p className="text-sm font-bold leading-relaxed inline-block mr-4 py-2 whitespace-nowrap uppercase text-white">
               {" "}
               Pozdrav, {user?.username}
-            </p>
+            </p> */}
+            <div>
+              <UserSearch />
+            </div>
 
             <button
               className="text-white cursor-pointer text-xl leading-none px-3 py-1 border border-solid border-transparent rounded bg-transparent block lg:hidden outline-none focus:outline-none"

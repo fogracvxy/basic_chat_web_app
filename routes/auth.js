@@ -77,12 +77,45 @@ authrouter.get("/status", async (req, res) => {
   }
 });
 authrouter.get("/profile", isAuthenticated, (req, res) => {});
-authrouter.post("/logout", (req, res) => {
+authrouter.get("/usersearch", async (req, res) => {
+  const userName = req.query.username;
+
+  if (userName) {
+    const query = `
+      SELECT username, avatar_url
+      FROM users
+      WHERE username LIKE $1
+    `;
+    const { rows } = await pool.query(query, [`%${userName}%`]);
+    res.json(rows);
+  } else {
+    res.json([]);
+  }
+});
+authrouter.get("/user/:username", isAuthenticated, async (req, res) => {
+  const { username } = req.params;
+  const user = username;
+
+  if (user) {
+    const query = `
+      SELECT username, avatar_url, email
+      FROM users
+      WHERE username LIKE $1
+    `;
+
+    const { rows } = await pool.query(query, [`%${username}%`]);
+    res.json(rows);
+  } else {
+    res.status(404).send("User not found");
+  }
+});
+
+authrouter.post("/logout", isAuthenticated, (req, res) => {
   req.session.destroy((err) => {
     if (err) {
       res.status(500).json({ error: "Could not log out, please try again" });
     } else {
-      res.clearCookie("sid"); // The name of your session cookie
+      res.clearCookie("sid");
       res.json({ message: "Logout successful" });
     }
   });

@@ -9,6 +9,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { AppDispatch, RootState } from "./redux/store"; // adjust import paths
 import { checkAuthStatus, logout } from "./redux/authslice"; // adjust import paths
 import { Login, Register, Home, Globalchat } from "./views";
+import UserProfile from "./views/UserProfile";
 
 const App: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -53,6 +54,11 @@ const App: React.FC = () => {
           path="/home"
           element={isAuthenticated ? <Home /> : <Navigate to="/login" />}
         />
+        <Route
+          path="/user/:username"
+          element={isAuthenticated ? <UserProfile /> : <Navigate to="/login" />}
+        />
+
         <Route
           path="*"
           element={

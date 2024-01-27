@@ -41,7 +41,7 @@ app.use(
     }, // Use secure cookies in production
   })
 );
-app.use("/auth", authrouter);
+
 app.use("/chat", chatrouter);
 // Adjust the route to include '/api'
 app.get("/api", (req, res) => {
@@ -56,8 +56,15 @@ const io = new Server(server, {
   methods: ["GET", "POST"],
   credentials: true,
 });
-
+app.use("/auth", authrouter(io));
 io.on("connection", (socket) => {
+  socket.on("joinRoom", (roomName) => {
+    socket.join(roomName);
+  });
+
+  socket.on("leaveRoom", (roomName) => {
+    socket.leave(roomName);
+  });
   socket.on("chatMessage", async (msg) => {
     try {
       // Save message to PostgreSQL

@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { RootState } from "../redux/store";
 interface User {
   username: string;
   avatar_url?: string;
@@ -11,6 +13,7 @@ const UserSearch: React.FC = () => {
   const [showNoUserMessage, setShowNoUserMessage] = useState<boolean>(false);
   let searchTimeout: NodeJS.Timeout | null = null;
   const navigate = useNavigate();
+  const userInfo = useSelector((state: RootState) => state.auth.user);
   useEffect(() => {
     // Clear the "no user found" message and timeout when searchQuery changes
     setShowNoUserMessage(false);
@@ -77,14 +80,19 @@ const UserSearch: React.FC = () => {
                     src={user.avatar_url}
                   ></img>{" "}
                 </div>
-                <div className="pt-3 pl-3"> {user.username}</div>
+                <div className="pt-3 pl-3">
+                  {" "}
+                  {user.username === userInfo?.username
+                    ? `${user.username} (You)`
+                    : `${user.username}`}
+                </div>
               </li>
             ))}
           </ul>
           {searchQuery.length >= 3 && showNoUserMessage && (
             <>
               <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded mt-1 max-h-60 overflow-auto">
-                <li className="p-2  ">No users found!</li>
+                <li className="p-2 ">No users found!</li>
               </ul>
             </>
           )}

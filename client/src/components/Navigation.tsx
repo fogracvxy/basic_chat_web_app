@@ -1,19 +1,28 @@
-import React, { useState } from "react";
-import { FaUser, FaHome, FaPowerOff } from "react-icons/fa";
+import React, { useEffect, useState } from "react";
+import { FaUser, FaHome, FaPowerOff, FaBell } from "react-icons/fa";
 import { FaMessage } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
 import { ImMenu, ImMenu4 } from "react-icons/im";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../redux/store";
 import { logout } from "../redux/authslice";
 import UserSearch from "./userSearch";
+import { io } from "socket.io-client";
+import { RootState } from "../redux/store";
+import { NotificationDropdown } from "./NotificationDropdown";
 export const Navigation: React.FC = () => {
+  interface Notification {
+    message: string;
+    senderusername: string;
+    senderavatar: string;
+  }
   const [navbarOpen, setNavbarOpen] = useState<boolean>(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState<boolean>(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
-  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState<boolean>(false); // State to control logout modal visibility
   const user = useSelector((state: RootState) => state.auth.user);
+  // State to control logout modal visibility
   const openLogoutWarning = () => {
     setIsLogoutModalOpen(true);
   };
@@ -32,16 +41,68 @@ export const Navigation: React.FC = () => {
       // Handle logout errors
     }
   };
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      if (user?.id) {
+        // Added check for user?.id to ensure it's not undefined
+        try {
+          const response = await fetch(
+            `http://localhost:3001/auth/notifications/${user.id}`,
+            { method: "GET", credentials: "include" }
+          );
+          const data = await response.json();
+          if (response.ok) {
+            console.log(data);
+            // Adjust this line based on the actual structure of the response
+            // For example, if the response structure is { notifications: [...] }
+            setNotifications(data.notifications || []); // Default to an empty array if data.notifications is falsy
+          } else {
+            // Handle non-200 responses
+            console.error("Failed to fetch notifications:", data);
+          }
+        } catch (error) {
+          console.error("Fetch error:", error);
+        }
+      }
+    };
+
+    fetchNotifications();
+
+    // Initialize Socket.IO client
+    const socket = io("http://localhost:3001", {});
+
+    // Assuming 'user' has a property 'id' which is the user's ID
+    const userId = user?.id;
+
+    if (userId) {
+      // Join a room for the user
+      socket.emit("joinRoom", `user_${userId}`);
+
+      // Listen for real-time notifications via Socket.IO
+      socket.on("notification", (notification) => {
+        setNotifications((prevNotifications) => [
+          ...prevNotifications,
+          notification,
+        ]);
+      });
+    }
+    // Cleanup on component unmount
+    return () => {
+      if (userId) {
+        // Leave the room when the component unmounts
+        socket.emit("leaveRoom", `user_${userId}`);
+      }
+
+      socket.off("notification");
+      socket.disconnect();
+    };
+  }, [user]);
 
   return (
     <>
       <nav className="relative flex flex-wrap items-center justify-between px-2 py-3 bg-sky-400">
         <div className="container px-4 mx-auto flex flex-wrap items-center justify-between">
           <div className="w-full relative flex justify-between lg:w-auto lg:static lg:block lg:justify-start">
-            {/* <p className="text-sm font-bold leading-relaxed inline-block mr-4 py-2 whitespace-nowrap uppercase text-white">
-              {" "}
-              Pozdrav, {user?.username}
-            </p> */}
             <div>
               <UserSearch />
             </div>
@@ -82,7 +143,7 @@ export const Navigation: React.FC = () => {
               </li>
               <li
                 onClick={() => {
-                  navigate("/profile");
+                  navigate(`/user/${user?.username}`);
                 }}
                 className="nav-item px-3 py-2 flex items-center text-xs uppercase font-bold leading-snug text-white hover:opacity-75 cursor-pointer"
               >
@@ -105,10 +166,25 @@ export const Navigation: React.FC = () => {
                   <FaPowerOff color="red" />
                 )}
               </li>
+              <div
+                className="flex flex-col items-center relative pl-5"
+                onClick={() => setDropdownOpen((prevShow) => !prevShow)}
+              >
+                <FaBell color={notifications.length > 0 ? "red" : "blue"} />{" "}
+                {/* Replace with your notification icon */}
+                <span className="notification-count">
+                  {notifications.length}
+                </span>
+              </div>
             </ul>
           </div>
         </div>
       </nav>
+      <NotificationDropdown
+        notifications={notifications}
+        dropdownOpen={dropdownOpen}
+        setDropdownOpen={setDropdownOpen}
+      />
       {isLogoutModalOpen && (
         <div className="justify-center items-center flex overflow-x-hidden  overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none">
           <div className="relative w-auto my-6 mx-auto max-w-sm">

@@ -176,7 +176,9 @@ const UserProfile: React.FC = () => {
             className="w-32 h-32 rounded-full object-cover mb-4"
           />
           <h1 className="text-2xl font-semibold text-gray-800">
-            {user.username}
+            {user.username === loggedUser?.username
+              ? `${user.username} (You)`
+              : user.username}
           </h1>
           <p className="text-gray-600 mt-2">{user.email}</p>
           <p className="font-bold pt-5">
